@@ -12,6 +12,8 @@ module.exports = {
             .innerJoin('adresses', 'users.id', 'adresses.user_id')
             .innerJoin('churches', 'users.id', 'churches.user_id')
             .innerJoin('functions', 'users.id', 'functions.user_id')
+            .innerJoin('nascimento', 'users.id', 'nascimento.user_id')
+            .innerJoin('batismo', 'users.id', 'batismo.user_id')
             .innerJoin('images', 'users.id', 'images.user_id')
             .select(
                 'users.*',
@@ -21,10 +23,21 @@ module.exports = {
                 'adresses.*',
                 'churches.*',
                 'informations.*',
-                'functions.*'
+                'functions.*',
+                'nascimento.*',
+                'batismo.*',
             )
+            .orderBy('users.nome', 'asc')
 
         return response.json(users);
+    },
+
+    async getCount(request, response) {
+        const count = await connection('users')
+            .count('cpf')
+
+
+        return response.json(count)
     },
 
     async selectSpecificUser(request, response) {
@@ -46,6 +59,8 @@ module.exports = {
             .innerJoin('adresses', 'users.id', 'adresses.user_id')
             .innerJoin('churches', 'users.id', 'churches.user_id')
             .innerJoin('functions', 'users.id', 'functions.user_id')
+            .innerJoin('nascimento', 'users.id', 'nascimento.user_id')
+            .innerJoin('batismo', 'users.id', 'batismo.user_id')
             .innerJoin('images', 'users.id', 'images.user_id')
             .where({ 'users.id': id })
             .select(
@@ -56,12 +71,16 @@ module.exports = {
                 'adresses.*',
                 'churches.*',
                 'informations.*',
-                'functions.*'
+                'functions.*',
+                'nascimento.*',
+                'batismo.*'
+
             )
             .first();
 
         return response.json(user);
     },
+
 
     async create(request, response) {
         const {
@@ -69,6 +88,7 @@ module.exports = {
             estado_civil,
             cpf,
             rg,
+            sexo,
             filiacao,
             telefone,
             email,
@@ -83,6 +103,14 @@ module.exports = {
             data_nascimento,
 
         } = request.body;
+
+        const dia_nascimento = data_nascimento.slice(8)
+        const mes_nascimento = data_nascimento.slice(5, 7)
+        const ano_nascimento = data_nascimento.slice(0, 4)
+
+        const dia_batismo = data_batismo.slice(8)
+        const mes_batismo = data_batismo.slice(5, 7)
+        const ano_batismo = data_batismo.slice(0, 4)
 
         const user = await connection('users')
             .where({ 'cpf': cpf })
@@ -99,8 +127,8 @@ module.exports = {
                     estado_civil,
                     cpf,
                     rg,
-                    filiacao,
-                    data_nascimento,
+                    sexo,
+                    filiacao
                 })
 
             const userId = await connection('users')
@@ -135,7 +163,22 @@ module.exports = {
             await connection('functions')
                 .insert({
                     funcao,
-                    data_batismo,
+                    user_id: userId.id
+                })
+
+            await connection('nascimento')
+                .insert({
+                    dia_nascimento,
+                    mes_nascimento,
+                    ano_nascimento,
+                    user_id: userId.id
+                })
+
+            await connection('batismo')
+                .insert({
+                    dia_batismo,
+                    mes_batismo,
+                    ano_batismo,
                     user_id: userId.id
                 })
 
@@ -168,9 +211,22 @@ module.exports = {
             .innerJoin('adresses', 'users.id', 'adresses.user_id')
             .innerJoin('churches', 'users.id', 'churches.user_id')
             .innerJoin('functions', 'users.id', 'functions.user_id')
+            .innerJoin('nascimento', 'users.id', 'nascimento.user_id')
+            .innerJoin('batismo', 'users.id', 'batismo.user_id')
             .innerJoin('images', 'users.id', 'images.user_id')
             .where({ 'cpf': cpf })
-            .select('users.*', 'images.key', 'images.size', 'images.created_at', 'adresses.*', 'churches.*', 'informations.*', 'functions.*')
+            .select(
+                'users.*',
+                'images.key',
+                'images.size',
+                'images.created_at',
+                'adresses.*',
+                'churches.*',
+                'informations.*',
+                'functions.*',
+                'nascimento.*',
+                'batismo.*',
+            )
 
         return response.json(user);
     },
@@ -178,47 +234,53 @@ module.exports = {
     async deleteUser(request, response) {
         const { id, key } = request.params;
 
-        try {
-            await connection('informations')
-                .where({ 'user_id': id })
-                .delete();
 
-            await connection('adresses')
-                .where({ 'user_id': id })
-                .delete();
+        await connection('informations')
+            .where({ 'user_id': id })
+            .delete();
 
-            await connection('churches')
-                .where({ 'user_id': id })
-                .delete();
+        await connection('adresses')
+            .where({ 'user_id': id })
+            .delete();
 
-            await connection('functions')
-                .where({ 'user_id': id })
-                .delete();
+        await connection('churches')
+            .where({ 'user_id': id })
+            .delete();
 
-            await connection('images')
-                .where({ 'user_id': id })
-                .delete();
+        await connection('functions')
+            .where({ 'user_id': id })
+            .delete();
 
-            await connection('users')
-                .where({ 'id': id })
-                .delete();
+        await connection('images')
+            .where({ 'user_id': id })
+            .delete();
 
-            return promisify(fs.unlink)(path.resolve(__dirname, '..', '..', 'temp', 'uploads', key))
-        } catch (error) {
-            console.log(error.response)
-        }
+        await connection('nascimento')
+            .where({ 'user_id': id })
+            .delete();
 
-        return response.json('Excluído com sucesso')
+        await connection('batismo')
+            .where({ 'user_id': id })
+            .delete();
+
+        await connection('users')
+            .where({ 'id': id })
+            .delete();
+
+        promisify(fs.unlink)(path.resolve(__dirname, '..', '..', 'temp', 'uploads', key))
+
+        return response.status(204).send();
     },
 
-    async editUser(request, response){
-        const { id, key} = request.params;
+    async editUser(request, response) {
+        const { id, key } = request.params;
 
         const {
             nome,
             estado_civil,
             cpfNew,
             rg,
+            sexo,
             filiacao,
             telefone,
             email,
@@ -226,7 +288,7 @@ module.exports = {
             numero,
             bairro,
             cidade,
-            uf, 
+            uf,
             congregacao,
             funcao,
             data_batismo,
@@ -234,55 +296,78 @@ module.exports = {
 
         } = request.body;
 
+        const dia_nascimento = data_nascimento.slice(8)
+        const mes_nascimento = data_nascimento.slice(5, 7)
+        const ano_nascimento = data_nascimento.slice(0, 4)
+
+        const dia_batismo = data_batismo.slice(8)
+        const mes_batismo = data_batismo.slice(5, 7)
+        const ano_batismo = data_batismo.slice(0, 4)
+
         await connection('users')
-        .where({'id': id})
-        .update({
-            'nome': nome,
-            'estado_civil': estado_civil,
-            'cpf': cpfNew,
-            'rg': rg,
-            'filiacao': filiacao,
-            'data_nascimento': data_nascimento
-        })
+            .where({ 'id': id })
+            .update({
+                'nome': nome,
+                'estado_civil': estado_civil,
+                'cpf': cpfNew,
+                'rg': rg,
+                'sexo': sexo,
+                'filiacao': filiacao,
+            })
 
         await connection('adresses')
-        .where({'user_id': id})
-        .update({
-            'endereco': endereco,
-            'numero': numero,
-            'bairro': bairro,
-            'cidade': cidade,
-            'uf': uf,
-        })
-        
+            .where({ 'user_id': id })
+            .update({
+                'endereco': endereco,
+                'numero': numero,
+                'bairro': bairro,
+                'cidade': cidade,
+                'uf': uf,
+            })
+
         await connection('informations')
-        .where({'user_id': id})
-        .update({
-            'email': email,
-            'telefone': telefone,
-        })
+            .where({ 'user_id': id })
+            .update({
+                'email': email,
+                'telefone': telefone,
+            })
 
         await connection('churches')
-        .where({'user_id': id})
-        .update({
-            'congregacao': congregacao,
-        })
-        
+            .where({ 'user_id': id })
+            .update({
+                'congregacao': congregacao,
+            })
+
         await connection('functions')
-        .where({'user_id': id})
-        .update({
-            'funcao': funcao,
-            'data_batismo': data_batismo,
-        })
+            .where({ 'user_id': id })
+            .update({
+                'funcao': funcao,
+            })
+
+        await connection('nascimento')
+            .where({ 'user_id': id })
+            .update({
+                'dia_nascimento': dia_nascimento,
+                'mes_nascimento': mes_nascimento,
+                'ano_nascimento': ano_nascimento
+            })
+
+        await connection('batismo')
+            .where({ 'user_id': id })
+            .update({
+                'dia_batismo': dia_batismo,
+                'mes_batismo': mes_batismo,
+                'ano_batismo': ano_batismo
+            })
 
         const image = await connection('images')
-        .where({'key': key})
-        .select('key')
-        .first();
+            .where({ 'key': key })
+            .select('key')
+            .first();
 
         if (image) {
             return response.json('Continua a mesma foto')
-        }else {
+        } else {
             return response.json('Cliente escolheu outra foto')
         }
 

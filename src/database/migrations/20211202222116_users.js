@@ -6,8 +6,8 @@ exports.up = function(knex) {
       table.string('estado_civil').notNullable();
       table.string('cpf').notNullable();
       table.string('rg').notNullable();
+      table.string('sexo').notNullable();
       table.string('filiacao').notNullable();
-      table.string('data_nascimento').notNullable();
   })
 };
 
