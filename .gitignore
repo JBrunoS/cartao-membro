@@ -1,7 +1,5 @@
 /node_modules
 
-.env
-
 temp/uploads/*
 
 !temp/uploads/.gitkeep
