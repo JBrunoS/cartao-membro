@@ -29,6 +29,7 @@ module.exports = {
                 'images.key',
                 'images.size',
                 'images.created_at',
+                'images.url',
                 'adresses.*',
                 'churches.*',
                 'informations.*',

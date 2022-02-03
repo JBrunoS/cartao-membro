@@ -4,6 +4,7 @@ exports.up = function(knex) {
         table.string('nome').notNullable();
         table.string('key').notNullable();
         table.integer('size').notNullable();
+        table.string('url');
         table.timestamp('created_at').defaultTo(knex.fn.now());
         table.integer('user_id').notNullable();
         

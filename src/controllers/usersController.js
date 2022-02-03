@@ -3,6 +3,10 @@ const fs = require('fs')
 const path = require('path')
 const { promisify } = require('util')
 
+const aws = require('aws-sdk')
+
+const s3 = new aws.S3();
+
 module.exports = {
 
     async index(request, response) {
@@ -20,6 +24,7 @@ module.exports = {
                 'images.key',
                 'images.size',
                 'images.created_at',
+                'images.url',
                 'adresses.*',
                 'churches.*',
                 'informations.*',
@@ -68,6 +73,7 @@ module.exports = {
                 'images.key',
                 'images.size',
                 'images.created_at',
+                'images.url',
                 'adresses.*',
                 'churches.*',
                 'informations.*',
@@ -195,8 +201,9 @@ module.exports = {
         await connection('images')
             .insert({
                 nome: request.file.originalname,
-                key: request.file.filename,
+                key: request.file.key,
                 size: request.file.size,
+                url: request.file.location,
                 user_id: id
             })
 
@@ -220,6 +227,7 @@ module.exports = {
                 'images.key',
                 'images.size',
                 'images.created_at',
+                'images.url',
                 'adresses.*',
                 'churches.*',
                 'informations.*',
@@ -267,7 +275,11 @@ module.exports = {
             .where({ 'id': id })
             .delete();
 
-        promisify(fs.unlink)(path.resolve(__dirname, '..', '..', 'temp', 'uploads', key))
+        s3.deleteObject({
+            Bucket: 'gestaomembros',
+            Key: key
+        }).promise();
+        // promisify(fs.unlink)(path.resolve(__dirname, '..', '..', 'temp', 'uploads', key))
 
         return response.status(204).send();
     },
