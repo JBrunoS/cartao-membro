@@ -197,17 +197,63 @@ module.exports = {
 
     async createImage(request, response) {
         const { id } = request.params;
+        const { size, key } = request.file;
 
-        await connection('images')
-            .insert({
-                nome: request.file.originalname,
-                key: request.file.key,
-                size: request.file.size,
-                url: request.file.location,
-                user_id: id
-            })
 
-        return response.json(200).send();
+        if (size > (2 * 1024 * 1024)) {
+
+            await connection('informations')
+                .where({ 'user_id': id })
+                .delete();
+
+            await connection('adresses')
+                .where({ 'user_id': id })
+                .delete();
+
+            await connection('churches')
+                .where({ 'user_id': id })
+                .delete();
+
+            await connection('functions')
+                .where({ 'user_id': id })
+                .delete();
+
+            await connection('images')
+                .where({ 'user_id': id })
+                .delete();
+
+            await connection('nascimento')
+                .where({ 'user_id': id })
+                .delete();
+
+            await connection('batismo')
+                .where({ 'user_id': id })
+                .delete();
+
+            await connection('users')
+                .where({ 'id': id })
+                .delete();
+
+            s3.deleteObject({
+                Bucket: 'gestaomembros',
+                Key: key
+            }).promise();
+
+            return response.json("Tamanho do arquivo maior que o permitido")
+
+        } else {
+
+            await connection('images')
+                .insert({
+                    nome: request.file.originalname,
+                    key: request.file.key,
+                    size: request.file.size,
+                    url: request.file.location,
+                    user_id: id
+                })
+
+            return response.json(200).send();
+        }
     },
 
     async getUserAll(request, response) {
