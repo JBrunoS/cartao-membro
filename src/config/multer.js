@@ -49,7 +49,8 @@ module.exports = {
             "image/jpeg",
             "image/jpg",
             "image/pjpeg",
-            "image/png"
+            "image/png",
+            "image/webp"
         ];
 
         if (allowedMimes.includes(file.mimetype)) {
