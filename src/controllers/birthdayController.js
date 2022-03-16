@@ -12,7 +12,10 @@ module.exports = {
             .innerJoin('churches', 'users.id', 'churches.user_id')
             .innerJoin('batismo', 'users.id', 'batismo.user_id')
             .innerJoin('images', 'users.id', 'images.user_id')
-            .where({'mes_nascimento': mes})
+            .where({
+                'mes_nascimento': mes,
+                'users.status': true
+            })
             .select(
                 'users.*',
                 'images.key',
@@ -28,6 +31,6 @@ module.exports = {
             )
             .orderBy('dia_nascimento', 'users.name', 'asc')
 
-            return response.json(user);
+        return response.json(user);
     }
 }

@@ -37,6 +37,62 @@ module.exports = {
         return response.json(users);
     },
 
+    async getAllUsersActive(request, response){
+        const users = await connection('users')
+            .innerJoin('informations', 'users.id', 'informations.user_id')
+            .innerJoin('adresses', 'users.id', 'adresses.user_id')
+            .innerJoin('churches', 'users.id', 'churches.user_id')
+            .innerJoin('functions', 'users.id', 'functions.user_id')
+            .innerJoin('nascimento', 'users.id', 'nascimento.user_id')
+            .innerJoin('batismo', 'users.id', 'batismo.user_id')
+            .innerJoin('images', 'users.id', 'images.user_id')
+            .where({'users.status' : true})
+            .select(
+                'users.*',
+                'images.key',
+                'images.size',
+                'images.created_at',
+                'images.url',
+                'adresses.*',
+                'churches.*',
+                'informations.*',
+                'functions.*',
+                'nascimento.*',
+                'batismo.*',
+            )
+            .orderBy('users.nome', 'asc')
+
+        return response.json(users);
+    },
+    
+    async getAllUsersInactive(request, response){
+        const users = await connection('users')
+            .innerJoin('informations', 'users.id', 'informations.user_id')
+            .innerJoin('adresses', 'users.id', 'adresses.user_id')
+            .innerJoin('churches', 'users.id', 'churches.user_id')
+            .innerJoin('functions', 'users.id', 'functions.user_id')
+            .innerJoin('nascimento', 'users.id', 'nascimento.user_id')
+            .innerJoin('batismo', 'users.id', 'batismo.user_id')
+            .innerJoin('images', 'users.id', 'images.user_id')
+            .where({'users.status' : false})
+            .select(
+                'users.*',
+                'images.key',
+                'images.size',
+                'images.created_at',
+                'images.url',
+                'adresses.*',
+                'churches.*',
+                'informations.*',
+                'functions.*',
+                'nascimento.*',
+                'batismo.*',
+            )
+            .orderBy('users.nome', 'asc')
+
+        return response.json(users);
+    },
+
     async getCount(request, response) {
         const count = await connection('users')
             .count('cpf')
@@ -106,7 +162,7 @@ module.exports = {
             congregacao,
             funcao,
             data_batismo,
-            data_nascimento,
+            data_nascimento
 
         } = request.body;
 
@@ -134,7 +190,8 @@ module.exports = {
                     cpf,
                     rg,
                     sexo,
-                    filiacao
+                    filiacao,
+                    status: true
                 })
 
             const userId = await connection('users')
@@ -351,6 +408,7 @@ module.exports = {
             funcao,
             data_batismo,
             data_nascimento,
+            status
 
         } = request.body;
 
@@ -371,6 +429,7 @@ module.exports = {
                 'rg': rg,
                 'sexo': sexo,
                 'filiacao': filiacao,
+                'status': status
             })
 
         await connection('adresses')

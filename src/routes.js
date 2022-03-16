@@ -14,6 +14,8 @@ const routes = express.Router()
 
 
 routes.get('/user', userController.index);
+routes.get('/user/active', userController.getAllUsersActive);
+routes.get('/user/inactive', userController.getAllUsersInactive);
 routes.get('/user/specific/:cpf', userController.selectSpecificUser);
 routes.get('/user/:cpf', userController.getUserAll);
 routes.get('/user/id/:id', userController.selectUserById);

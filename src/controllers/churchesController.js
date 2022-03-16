@@ -12,7 +12,10 @@ module.exports = {
             .innerJoin('images', 'users.id', 'images.user_id')
             .innerJoin('nascimento', 'users.id', 'nascimento.user_id')
             .innerJoin('batismo', 'users.id', 'batismo.user_id')
-            .where({'churches.congregacao': id})
+            .where({
+                'churches.congregacao': id,
+                'users.status': true
+            })
             .select(
                 'users.*',
                 'images.key',

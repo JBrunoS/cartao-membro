@@ -22,7 +22,8 @@ module.exports = {
             .innerJoin('nascimento', 'users.id', 'nascimento.user_id')
             .innerJoin('batismo', 'users.id', 'batismo.user_id')
             .where({
-                'functions.funcao': cargo
+                'functions.funcao': cargo,
+                'users.status': true
             })
             .select(
                 'users.*',
