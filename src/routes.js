@@ -24,6 +24,8 @@ routes.get('/count/users', userController.getCount);
 routes.get('/count/churches', churchesController.getCount);
 routes.get('/count/cities', adressesController.getCount);
 
+routes.delete('/delete/image/:id/:key', userController.deleteImage);
+routes.put('/update/image/:id/', multer(multerConfig).single("file"), userController.updateImage);
 
 routes.get('/obreiros', obreirosController.index)
 routes.get('/obreiros/:cargo', obreirosController.getUsers)

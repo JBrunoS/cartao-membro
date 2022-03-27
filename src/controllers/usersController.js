@@ -37,7 +37,7 @@ module.exports = {
         return response.json(users);
     },
 
-    async getAllUsersActive(request, response){
+    async getAllUsersActive(request, response) {
         const users = await connection('users')
             .innerJoin('informations', 'users.id', 'informations.user_id')
             .innerJoin('adresses', 'users.id', 'adresses.user_id')
@@ -46,7 +46,7 @@ module.exports = {
             .innerJoin('nascimento', 'users.id', 'nascimento.user_id')
             .innerJoin('batismo', 'users.id', 'batismo.user_id')
             .innerJoin('images', 'users.id', 'images.user_id')
-            .where({'users.status' : true})
+            .where({ 'users.status': true })
             .select(
                 'users.*',
                 'images.key',
@@ -64,8 +64,8 @@ module.exports = {
 
         return response.json(users);
     },
-    
-    async getAllUsersInactive(request, response){
+
+    async getAllUsersInactive(request, response) {
         const users = await connection('users')
             .innerJoin('informations', 'users.id', 'informations.user_id')
             .innerJoin('adresses', 'users.id', 'adresses.user_id')
@@ -74,7 +74,7 @@ module.exports = {
             .innerJoin('nascimento', 'users.id', 'nascimento.user_id')
             .innerJoin('batismo', 'users.id', 'batismo.user_id')
             .innerJoin('images', 'users.id', 'images.user_id')
-            .where({'users.status' : false})
+            .where({ 'users.status': false })
             .select(
                 'users.*',
                 'images.key',
@@ -95,6 +95,7 @@ module.exports = {
 
     async getCount(request, response) {
         const count = await connection('users')
+            .where({ 'status': true })
             .count('cpf')
 
 
@@ -250,6 +251,37 @@ module.exports = {
 
         return response.status(200).send();
 
+    },
+
+    async updateImage(request, response) {
+        const { id } = request.params;
+
+        await connection('images')
+            .insert({
+                nome: request.file.originalname,
+                key: request.file.key,
+                size: request.file.size,
+                url: request.file.location,
+                user_id: id
+            })
+
+        return response.json(200).send();
+
+    },
+
+    async deleteImage(request, response) {
+        const { id, key } = request.params;
+
+        await connection('images')
+            .where({ 'user_id': id })
+            .delete();
+
+        s3.deleteObject({
+            Bucket: 'gestaomembros',
+            Key: key
+        }).promise();
+
+        return response.status(200).send();
     },
 
     async createImage(request, response) {
