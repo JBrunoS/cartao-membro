@@ -7,6 +7,7 @@ const churchesController = require('./controllers/churchesController');
 const userController = require('./controllers/usersController');
 const adressesController = require('./controllers/adressesController');
 const obreirosController = require('./controllers/obreirosController');
+const adminController = require('./controllers/adminController')
 
 
 const routes = express.Router()
@@ -40,5 +41,7 @@ routes.post('/user/:id', multer(multerConfig).single("file"), userController.cre
 routes.delete('/user/:id/:key', userController.deleteUser);
 
 routes.put('/user/:id/:key', userController.editUser);
+
+routes.post('/admin', adminController.index )
 
 module.exports = routes 
